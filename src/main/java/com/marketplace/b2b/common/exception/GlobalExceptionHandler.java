@@ -28,7 +28,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Traduce cualquier excepción a una respuesta homogénea en formato ProblemDetail (RFC 9457),
+ * agregando: code, timestamp, correlationId y, si aplica, la lista de errores por campo.
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -146,13 +149,14 @@ public class GlobalExceptionHandler {
     }
 
     // ------------------------------------------------------------------
-    // Seguridad
+    // Seguridad (llegan aquí desde SecurityProblemHandler)
     // ------------------------------------------------------------------
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ProblemDetail> handleAuthentication(AuthenticationException ex,
                                                               HttpServletRequest request) {
-        return build(ErrorCode.INVALID_CREDENTIALS, "Correo o contraseña incorrectos", request, List.of(), ex);
+        return build(ErrorCode.UNAUTHORIZED,
+                "Se requiere un token válido. Inicie sesión e intente nuevamente", request, List.of(), ex);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
