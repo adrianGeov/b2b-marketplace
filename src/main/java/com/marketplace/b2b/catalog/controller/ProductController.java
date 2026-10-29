@@ -49,7 +49,7 @@ public class ProductController {
 
     @GetMapping
     @Operation(summary = "Buscar productos",
-            description = "Búsqueda paginada de productos activos por texto (nombre, SKU o descripción) "
+            description = "Búsqueda paginada por texto (nombre, SKU o descripción, sin distinguir acentos) "
                     + "y categoría. Orden permitido: name, price, category, sku, stock, createdAt.")
     public PageResponse<ProductResponse> search(
             @Parameter(description = "Texto a buscar", example = "cafe")
@@ -57,8 +57,12 @@ public class ProductController {
             String search,
             @Parameter(description = "Categoría exacta", example = "Cafetería")
             @RequestParam(required = false) String category,
-            @ParameterObject @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        return productService.search(search, category, pageable);
+            @Parameter(description = "Solo ADMIN: incluir productos inactivos (para clientes se ignora)")
+            @RequestParam(defaultValue = "false") boolean includeInactive,
+            @ParameterObject @PageableDefault(size = 20, sort = "name") Pageable pageable,
+            @AuthenticationPrincipal Jwt jwt) {
+        boolean showInactive = includeInactive && AuthenticatedUser.from(jwt).isAdmin();
+        return productService.search(search, category, showInactive, pageable);
     }
 
     @GetMapping("/categories")
@@ -92,7 +96,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Actualizar producto (ADMIN)")
+    @Operation(summary = "Actualizar producto (ADMIN)", description = "Con active=true se reactiva un producto.")
     public ProductResponse update(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         return productService.update(id, request);
     }

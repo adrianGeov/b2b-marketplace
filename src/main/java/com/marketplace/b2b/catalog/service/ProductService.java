@@ -35,12 +35,24 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
+    /** Búsqueda para clientes: solo productos activos. */
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> search(String search, String category, Pageable pageable) {
+        return search(search, category, false, pageable);
+    }
+
+    /**
+     * @param includeInactive true solo para ADMIN (lo decide el controller): incluye productos desactivados
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ProductResponse> search(String search, String category, boolean includeInactive,
+                                                Pageable pageable) {
         validateSort(pageable.getSort());
 
         List<Specification<Product>> filters = new ArrayList<>();
-        filters.add(ProductSpecifications.isActive());
+        if (!includeInactive) {
+            filters.add(ProductSpecifications.isActive());
+        }
         if (StringUtils.hasText(search)) {
             filters.add(ProductSpecifications.matchesText(search.trim()));
         }
