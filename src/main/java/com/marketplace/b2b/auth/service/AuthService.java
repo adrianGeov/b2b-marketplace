@@ -5,6 +5,7 @@ import com.marketplace.b2b.auth.dto.LoginRequest;
 import com.marketplace.b2b.auth.dto.RegisterRequest;
 import com.marketplace.b2b.common.exception.BusinessException;
 import com.marketplace.b2b.common.exception.ErrorCode;
+import com.marketplace.b2b.integration.event.IntegrationEventPublisher;
 import com.marketplace.b2b.security.JwtTokenService;
 import com.marketplace.b2b.security.JwtTokenService.IssuedToken;
 import com.marketplace.b2b.user.entity.User;
@@ -29,6 +30,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
     private final UserMapper userMapper;
+    private final IntegrationEventPublisher integrationEvents;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -50,6 +52,9 @@ public class AuthService {
                 .build();
 
         User saved = userRepository.save(user);
+        // Se avisa al CRM (vía outbox, en la misma transacción)
+        integrationEvents.customerRegistered(saved);
+
         // No se registra el correo en el log (dato personal); basta con el id
         log.info("Usuario registrado id={} rol={}", saved.getId(), saved.getRole());
         return buildResponse(saved);

@@ -6,6 +6,7 @@ import com.marketplace.b2b.auth.dto.LoginRequest;
 import com.marketplace.b2b.auth.dto.RegisterRequest;
 import com.marketplace.b2b.common.exception.BusinessException;
 import com.marketplace.b2b.common.exception.ErrorCode;
+import com.marketplace.b2b.integration.event.IntegrationEventPublisher;
 import com.marketplace.b2b.security.JwtTokenService;
 import com.marketplace.b2b.security.JwtTokenService.IssuedToken;
 import com.marketplace.b2b.user.dto.UserResponse;
@@ -30,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -44,6 +46,8 @@ class AuthServiceTest {
     private JwtTokenService jwtTokenService;
     @Mock
     private UserMapper userMapper;
+    @Mock
+    private IntegrationEventPublisher integrationEvents;
 
     @InjectMocks
     private AuthService authService;
@@ -53,7 +57,7 @@ class AuthServiceTest {
     // ------------------------------------------------------------------
 
     @Test
-    @DisplayName("Registro exitoso: normaliza datos, cifra la contraseña y devuelve el token")
+    @DisplayName("Registro exitoso: normaliza datos, cifra la contraseña, avisa al CRM y devuelve el token")
     void shouldRegisterUserAndReturnToken() {
         RegisterRequest request = new RegisterRequest("  Compras@Acme.MX ", "Secreta123",
                 "Ana Lopez", "Acme SA de CV", "aaa010101aaa", AccountType.DISTRIBUTOR);
@@ -81,6 +85,8 @@ class AuthServiceTest {
         assertThat(saved.getRole()).isEqualTo(Role.DISTRIBUTOR);
         assertThat(saved.isEnabled()).isTrue();
 
+        verify(integrationEvents).customerRegistered(saved);
+
         assertThat(response.accessToken()).isEqualTo("jwt-token");
         assertThat(response.tokenType()).isEqualTo("Bearer");
         assertThat(response.expiresIn()).isEqualTo(3600);
@@ -88,7 +94,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Registro con correo existente lanza EMAIL_ALREADY_REGISTERED y no guarda nada")
+    @DisplayName("Registro con correo existente lanza EMAIL_ALREADY_REGISTERED, no guarda ni avisa al CRM")
     void shouldRejectDuplicatedEmail() {
         RegisterRequest request = new RegisterRequest("compras@acme.mx", "Secreta123",
                 "Ana Lopez", "Acme SA de CV", "AAA010101AAA", AccountType.CUSTOMER);
@@ -100,6 +106,7 @@ class AuthServiceTest {
                 .isEqualTo(ErrorCode.EMAIL_ALREADY_REGISTERED);
 
         verify(userRepository, never()).save(any());
+        verifyNoInteractions(integrationEvents);
     }
 
     // ------------------------------------------------------------------

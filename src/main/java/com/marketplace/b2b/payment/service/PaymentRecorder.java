@@ -1,6 +1,7 @@
 package com.marketplace.b2b.payment.service;
 
 import com.marketplace.b2b.common.exception.ResourceNotFoundException;
+import com.marketplace.b2b.integration.event.IntegrationEventPublisher;
 import com.marketplace.b2b.order.entity.OrderStatus;
 import com.marketplace.b2b.order.entity.PurchaseOrder;
 import com.marketplace.b2b.order.repository.OrderRepository;
@@ -22,6 +23,7 @@ public class PaymentRecorder {
 
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final IntegrationEventPublisher integrationEvents;
 
     @Transactional
     public Payment record(Long orderId, PaymentAttempt attempt) {
@@ -44,6 +46,12 @@ public class PaymentRecorder {
                 .build();
 
         // saveAndFlush: si ya existe un pago APPROVED, el índice único parcial falla aquí
-        return paymentRepository.saveAndFlush(payment);
+        Payment saved = paymentRepository.saveAndFlush(payment);
+
+        if (saved.getStatus() == PaymentStatus.APPROVED) {
+            // Evento para ERP y CRM en la MISMA transacción que el pago (patrón outbox)
+            integrationEvents.orderPaid(order, saved);
+        }
+        return saved;
     }
 }

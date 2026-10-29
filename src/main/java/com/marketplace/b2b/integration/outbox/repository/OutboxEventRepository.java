@@ -13,7 +13,7 @@ import java.util.List;
 public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> {
 
     /**
-     * Toma un lote de eventos pendientes y los bloquea.
+     * Toma eventos pendientes y los bloquea.
      * SKIP LOCKED permite correr varias instancias de la app sin procesar el mismo evento dos veces.
      */
     @Query(value = """
@@ -26,4 +26,6 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> 
     List<OutboxEvent> lockNextBatch(@Param("limit") int limit);
 
     long countByStatus(OutboxStatus status);
+
+    List<OutboxEvent> findTop50ByStatusOrderByCreatedAtDesc(OutboxStatus status);
 }
