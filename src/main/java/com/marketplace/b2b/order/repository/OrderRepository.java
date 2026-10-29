@@ -1,5 +1,6 @@
 package com.marketplace.b2b.order.repository;
 
+import com.marketplace.b2b.order.entity.OrderStatus;
 import com.marketplace.b2b.order.entity.PurchaseOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,4 +24,6 @@ public interface OrderRepository extends JpaRepository<PurchaseOrder, Long> {
     Optional<PurchaseOrder> findByOrderNumber(String orderNumber);
 
     Page<PurchaseOrder> findByUserId(Long userId, Pageable pageable);
+
+    Page<PurchaseOrder> findByStatus(OrderStatus status, Pageable pageable);
 }

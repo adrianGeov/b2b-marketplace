@@ -4,6 +4,7 @@ import com.marketplace.b2b.common.dto.PageResponse;
 import com.marketplace.b2b.order.dto.OrderCreationResult;
 import com.marketplace.b2b.order.dto.OrderResponse;
 import com.marketplace.b2b.order.dto.OrderSummaryResponse;
+import com.marketplace.b2b.order.service.OrderLifecycleService;
 import com.marketplace.b2b.order.service.OrderService;
 import com.marketplace.b2b.security.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class OrderController {
     public static final String REPLAYED_HEADER = "Idempotent-Replayed";
 
     private final OrderService orderService;
+    private final OrderLifecycleService lifecycleService;
 
     /**
      * Crea un pedido con el contenido actual del carrito.
@@ -59,5 +61,12 @@ public class OrderController {
     public OrderResponse getOrder(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderNumber) {
         AuthenticatedUser user = AuthenticatedUser.from(jwt);
         return orderService.getOrder(user.id(), orderNumber, user.isAdmin());
+    }
+
+    /** Cancela un pedido aún no pagado; las existencias regresan al inventario. */
+    @PostMapping("/{orderNumber}/cancel")
+    public OrderResponse cancel(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderNumber) {
+        AuthenticatedUser user = AuthenticatedUser.from(jwt);
+        return lifecycleService.cancel(user.id(), orderNumber, user.isAdmin());
     }
 }
