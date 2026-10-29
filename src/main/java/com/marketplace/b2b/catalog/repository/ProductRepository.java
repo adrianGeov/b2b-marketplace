@@ -20,6 +20,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     boolean existsBySku(String sku);
 
+    @Query("select distinct p.category from Product p where p.active = true order by p.category")
+    List<String> findActiveCategories();
+
     /**
      * Bloquea las filas de los productos (SELECT ... FOR UPDATE) mientras se crea el pedido,
      * para que con alta concurrencia no se venda más de las existencias disponibles.
