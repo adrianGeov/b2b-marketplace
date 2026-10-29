@@ -30,7 +30,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_ENDPOINTS = {
+    /** Endpoints de la API que no requieren token. */
+    private static final String[] PUBLIC_API = {
             "/api/v1/auth/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
@@ -49,8 +50,11 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(PUBLIC_API).permitAll()
+                        // Toda la API de negocio exige token
+                        .requestMatchers("/api/**").authenticated()
+                        // Front estático (HTML, CSS, JS): no contiene datos; los datos vienen de la API protegida
+                        .anyRequest().permitAll())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(problemHandler)

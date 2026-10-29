@@ -1,0 +1,107 @@
+/* =====================================================================
+   Estilos propios del B2B Marketplace (complementan a Bootstrap 5)
+   ===================================================================== */
+:root {
+  --app-primary: #0f4c81;
+  --app-primary-dark: #0b3a63;
+  --app-accent: #f2a900;
+  --app-bg: #f4f6f9;
+  --bs-primary: var(--app-primary);
+  --bs-primary-rgb: 15, 76, 129;
+  --bs-link-color: var(--app-primary);
+  --bs-link-color-rgb: 15, 76, 129;
+  --bs-link-hover-color: var(--app-primary-dark);
+  --bs-link-hover-color-rgb: 11, 58, 99;
+}
+
+body {
+  background-color: var(--app-bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* Botón primario con el color de la marca */
+.btn-primary {
+  --bs-btn-bg: var(--app-primary);
+  --bs-btn-border-color: var(--app-primary);
+  --bs-btn-hover-bg: var(--app-primary-dark);
+  --bs-btn-hover-border-color: var(--app-primary-dark);
+  --bs-btn-active-bg: var(--app-primary-dark);
+  --bs-btn-disabled-bg: var(--app-primary);
+  --bs-btn-disabled-border-color: var(--app-primary);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--app-primary);
+  --bs-btn-border-color: var(--app-primary);
+  --bs-btn-hover-bg: var(--app-primary);
+  --bs-btn-hover-border-color: var(--app-primary);
+  --bs-btn-active-bg: var(--app-primary-dark);
+}
+
+/* Barra de navegación */
+.app-navbar {
+  background: linear-gradient(90deg, var(--app-primary-dark), var(--app-primary));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.app-navbar .nav-link.active {
+  color: #fff;
+  border-bottom: 2px solid var(--app-accent);
+}
+
+/* Pantallas de acceso (login / registro) */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(242, 169, 0, 0.18), transparent 40%),
+    linear-gradient(135deg, var(--app-primary-dark), var(--app-primary));
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  border: 0;
+  border-radius: 1rem;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.25);
+}
+
+.auth-card.auth-card-wide {
+  max-width: 640px;
+}
+
+.auth-brand {
+  color: var(--app-primary);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.auth-brand i {
+  color: var(--app-accent);
+}
+
+/* Tarjetas */
+.card {
+  border: 0;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.06);
+}
+
+.page-title {
+  font-weight: 600;
+  color: var(--app-primary-dark);
+}
+
+.app-footer {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
