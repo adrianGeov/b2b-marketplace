@@ -1,20 +1,50 @@
 services:
+
   postgres:
     image: postgres:16-alpine
     container_name: b2b-postgres
     environment:
       POSTGRES_DB: marketplace_b2b
-      POSTGRES_USER: marketplace
-      POSTGRES_PASSWORD: marketplace
+      POSTGRES_USER: ${DB_USER:-marketplace}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-marketplace}
     ports:
+      # 25432 en el host para no chocar con un PostgreSQL instalado localmente (5432)
       - "25432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U marketplace -d marketplace_b2b"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-marketplace} -d marketplace_b2b"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  app:
+    build:
+      context: .
+      args:
+        SKIP_TESTS: ${SKIP_TESTS:-false}
+    image: b2b-marketplace:latest
+    container_name: b2b-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Dentro de la red de Docker la BD se llama "postgres" y usa su puerto interno 5432
+      DB_URL: jdbc:postgresql://postgres:5432/marketplace_b2b
+      DB_USER: ${DB_USER:-marketplace}
+      DB_PASSWORD: ${DB_PASSWORD:-marketplace}
+      JWT_SECRET: ${JWT_SECRET:-M8QzToeO4nTDR7Qa/P8WjS2+IvcRvwvju5DxbONWfIb6rXpC8VRJFahwqyrsOR7B}
+      # Logs en JSON (formato ECS)
+      SPRING_PROFILES_ACTIVE: json-logs
+      # Datos de demostración incluidos; en producción: classpath:db/migration
+      FLYWAY_LOCATIONS: ${FLYWAY_LOCATIONS:-classpath:db/migration,classpath:db/demo}
+      PAYMENT_FAILURE_RATE: ${PAYMENT_FAILURE_RATE:-0.3}
+      ERP_LATENCY: ${ERP_LATENCY:-PT1S}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+      TZ: UTC
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
 
 volumes:
   pgdata:
